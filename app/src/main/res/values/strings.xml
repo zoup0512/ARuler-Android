@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ARuler</string>
+    <string name="header_placeholder">ARuler</string>
+
+    <string name="help">帮助</string>
+    <string name="settings">设置</string>
+    <string name="navigate_back">返回</string>
+    <string name="debug_visuals">调试视图</string>
+    <string name="place_point">设置测量起点</string>
+    <string name="place_end_point">设置测量终点</string>
+    <string name="delete_measurement">删除测量</string>
+    <string name="reset_measurement">清空并重新初始化</string>
+    <string name="exit">退出</string>
+    <string name="open_settings">去设置</string>
+    <string name="grant_camera">允许使用相机</string>
+
+    <string name="camera_permission_title">相机开启失败</string>
+    <string name="camera_permission_message">ARuler 需要使用相机才能测量距离。\n请允许相机权限，或前往系统设置中开启。</string>
+    <string name="ar_unsupported_title">无法启动 AR</string>
+    <string name="ar_unsupported_message">很遗憾，您当前的设备不支持 ARCore，无法运行 ARuler。</string>
+    <string name="ar_install_failed">ARCore 安装或更新未完成\n请稍后重试</string>
+    <string name="ar_session_failed">AR 会话启动失败\n请重新打开应用</string>
+
+    <string name="tracking_initializing">AR正在初始化\n请左右移动设备获取更多特征点</string>
+    <string name="tracking_excessive_motion">设备移动过快\n请缓慢移动</string>
+    <string name="tracking_insufficient_features">特征点过少\n请保证摄像头不被遮挡和环境光线充足</string>
+    <string name="tracking_insufficient_light">环境光线不足\n请到光线充足的地方</string>
+    <string name="tracking_camera_unavailable">相机不可用\n请稍后重试</string>
+    <string name="tracking_bad_state">AR暂时不可用\n请移动设备重新初始化</string>
+
+    <string name="coach_welcome">欢迎使用ARuler\n点击屏幕查看新手教程</string>
+    <string name="coach_move">左右移动手机来初始化测量\n点击屏幕查看下一步</string>
+    <string name="coach_indicator_green">当指示器变绿时可以开始测量</string>
+    <string name="coach_aim">将指示器的圆心对准要测量的起点</string>
+    <string name="coach_start">点击这里设置测量起始点</string>
+    <string name="coach_result">移动设备\n实时查看测量结果</string>
+    <string name="coach_end">点击这里设置测量终点</string>
+    <string name="coach_delete">点击这里删除上一个测量</string>
+    <string name="coach_reset">点击这里删除所有测量结果\n重新初始化测量</string>
+    <string name="coach_help">点击这里查看帮助</string>
+    <string name="coach_settings">点击这里查看修改软件设置</string>
+    <string name="coach_finish">开始你的第一次测量吧</string>
+    <string name="coach_tap_hint">轻触屏幕继续</string>
+
+    <string name="settings_title">设置</string>
+    <string name="settings_section_measure">测量设置</string>
+    <string name="settings_length_unit">长度单位</string>
+    <string name="settings_section_help">使用帮助</string>
+    <string name="settings_tutorial">新手教程</string>
+    <string name="settings_faq">常见问题</string>
+    <string name="settings_section_about">ARuler</string>
+    <string name="settings_support">支持 ARuler</string>
+    <string name="settings_feedback">吐槽 ARuler</string>
+    <string name="settings_about">关于 ARuler</string>
+
+    <string name="unit_centimeter_desc">厘米</string>
+    <string name="unit_meter_desc">米</string>
+    <string name="unit_foot_desc">英尺</string>
+    <string name="unit_inch_desc">英寸</string>
+    <string name="unit_chi_desc">尺</string>
+
+    <string name="guide_title">新手教程</string>
+    <string name="guide_intro">ARuler可以让你在垂直或水平的表面测量距离</string>
+    <string name="guide_start">如何开始使用</string>
+    <string name="guide_step_1">• 左右移动设备来初始化测量</string>
+    <string name="guide_step_2">• 将摄像头对准要测量的物体表面，距离大约一米</string>
+    <string name="guide_step_3">• 为使结果更准确，左右前后移动下设备，获取更多环境信息</string>
+    <string name="guide_step_4">• 将指示器指向要测量的起点，当指示器变为绿色时，点击＋按钮设置测量起点</string>
+    <string name="guide_step_5">• 在空间中移动设备，你将能在屏幕上实时看到测量结果</string>
+    <string name="guide_step_6">• 当要结束测量时，点击√按钮设置测量终点</string>
+    <string name="guide_icons">图标说明</string>
+    <string name="legend_indicator_green">位置指示器，绿色表示当前位置可以设置</string>
+    <string name="legend_indicator_red">位置指示器，红色表示当前位置不可以设置</string>
+    <string name="legend_start">确定测量的起始点</string>
+    <string name="legend_start_hint">当前位置的特征点较少时，无法设置起始点</string>
+    <string name="legend_end">确定测量的结束点</string>
+    <string name="legend_end_hint">当前位置的特征点较少时，无法设置结束点</string>
+    <string name="legend_delete">删除当前测量或者删除上一个完成的测量</string>
+    <string name="legend_reset">删除所有测量结果，重新初始化测量</string>
+    <string name="legend_help">跳转到帮助页面</string>
+    <string name="legend_settings">跳转到软件设置页面</string>
+
+    <string name="faq_title">常见问题</string>
+    <string name="faq_q1">1. 我的测量不准确怎么办？</string>
+    <string name="faq_a1">保证测量环境有充足的光线，测量时移动设备到多个角度获取更多特征点有助于提高准确度。</string>
+    <string name="faq_q2">2. 为什么测量指示器一直是红色的？</string>
+    <string name="faq_a2">单一纹理的背景（如白色的墙壁）不容易获取到特征点，测量环境的纹理越丰富，可获取的特征点也越多，测量就越准确。另外光线不充足获取的图像质量较差，也有可能导致获取不到特征点。</string>
+    <string name="faq_q3">3. 可以测量垂直的距离么？</string>
+    <string name="faq_a3">可以</string>
+    <string name="faq_q4">4. 为什么测量垂直的距离没有水平的准确？</string>
+    <string name="faq_a4">垂直位置的判定是根据特征点推定的，特征点过少可能导致和真实位置差距过大。移动手机到多个角度获取特征点有助于准确性的提高。</string>
+    <string name="faq_q5">5. 能测量远距离的物体（如大楼）么？</string>
+    <string name="faq_a5">不能，距离过远特征点获取不到，尽量测量距离比较近的物体。</string>
+    <string name="faq_more">更多问题请点击这里提问</string>
+
+    <string name="about_title">关于ARuler</string>
+    <string name="about_copyright">Copyright © 2017 Zexu, Inc.</string>
+    <string name="about_body">ARuler®可以透过相机镜头测量物体。你只需要将手机对准周围的物体，ARuler就可以使用增强现实功能测量物体。\n\n上街买衣服不知道腰围，买家具忘带尺子，只要有手机，ARuler就能将你的手机变成一把虚拟尺子。\n\n• 具有用户友好使用界面\n• 多单位输出\n• 实时在场景中看到效果</string>
+    <string name="about_support_link">支持ARuler</string>
+    <string name="about_license_link">开源协议</string>
+    <string name="about_version">ARuler v%1$s</string>
+    <string name="about_port_note">Android 移植版 · 使用 ARCore 构建</string>
+
+    <string name="support_title">支持 ARuler</string>
+    <string name="support_header">可以通过以下方式表达对ARuler的支持</string>
+    <string name="support_review">去应用商店评价</string>
+    <string name="support_share">分享给你的朋友</string>
+    <string name="support_star">给此开源项目 Star</string>
+    <string name="support_donate">打赏作者</string>
+    <string name="share_message">我正在使用ARuler测距离，快来试试吧！\n%1$s</string>
+    <string name="share_title">分享 ARuler</string>
+    <string name="store_unavailable">没有找到可用的应用商店</string>
+
+    <string name="donate_title">打赏</string>
+    <string name="donate_note">如果你觉得此项目帮助到了你，请我喝杯茶吧</string>
+    <string name="donate_wechat">微信打赏</string>
+    <string name="donate_alipay">支付宝打赏</string>
+    <string name="donate_qr_hint">长按二维码可保存到相册</string>
+    <string name="qr_saved">二维码已保存到相册</string>
+    <string name="qr_save_failed">保存失败\n请到设置页面打开存储权限</string>
+    <string name="qr_permission_needed">需要存储权限才能保存二维码</string>
+
+    <string name="license_title">开源协议</string>
+    <string name="license_header">感谢以下开源项目</string>
+    <string name="license_footer">ARuler Android 版参考原 iOS 项目复刻，遵循 GPL-2.0 协议开源。</string>
+    <string name="license_arcore">ARCore SDK（Apache 2.0）</string>
+    <string name="license_androidx">AndroidX（Apache 2.0）</string>
+    <string name="license_material">Material Components（Apache 2.0）</string>
+    <string name="license_opengl">OpenGL ES（Khronos Group）</string>
+    <string name="license_aruler_ios">ARuler iOS 原项目（GPL-2.0）</string>
+    <string name="license_gpl">GPL-2.0 协议全文</string>
+
+    <string name="web_page_title">网页</string>
+    <string name="web_load_failed">页面加载失败，请检查网络连接</string>
+
+    <string name="feedback_title">吐槽 ARuler</string>
+</resources>

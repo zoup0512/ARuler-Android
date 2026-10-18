@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/page_background"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/divider" />
+
+    <ScrollView
+        android:id="@+id/scroll_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_section_measure" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@color/row_background"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/settings_length_unit"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <com.aruler.android.ui.UnitSegmentedControl
+                    android:id="@+id/unit_control"
+                    android:layout_width="210dp"
+                    android:layout_height="30dp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_section_help" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/row_background"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/row_guide"
+                    layout="@layout/view_setting_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/divider" />
+
+                <include
+                    android:id="@+id/row_faq"
+                    layout="@layout/view_setting_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/SectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_section_about" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/row_background"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/row_support"
+                    layout="@layout/view_setting_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/divider" />
+
+                <include
+                    android:id="@+id/row_feedback"
+                    layout="@layout/view_setting_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@color/divider" />
+
+                <include
+                    android:id="@+id/row_about"
+                    layout="@layout/view_setting_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp" />
+            </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="40dp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

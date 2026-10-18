@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="theme">#3B7ADB</color>
+    <color name="fine">#95D26B</color>
+    <color name="alert">#DF352E</color>
+
+    <color name="text_title">#1F1F1F</color>
+    <color name="text_primary">#585858</color>
+    <color name="text_secondary">#8A8A8A</color>
+    <color name="header_text">#A7B4BE</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="page_background">#F9F9F9</color>
+    <color name="guide_background">#E9E9E9</color>
+    <color name="row_background">#FEFEFE</color>
+    <color name="divider">#EBEBEB</color>
+    <color name="chevron">#C7C7CC</color>
+
+    <color name="header_scrim">#EAFFFFFF</color>
+    <color name="ar_placeholder">#AAAAAA</color>
+    <color name="hud_background">#D91C1C1E</color>
+
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>

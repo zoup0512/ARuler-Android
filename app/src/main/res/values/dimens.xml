@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="header_height">84dp</dimen>
+    <dimen name="header_icon">40dp</dimen>
+    <dimen name="header_side_margin">20dp</dimen>
+    <dimen name="indicator_size">50dp</dimen>
+    <dimen name="place_button_size">70dp</dimen>
+    <dimen name="side_button_size">40dp</dimen>
+    <dimen name="action_gap">40dp</dimen>
+    <dimen name="bottom_margin">30dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="section_header_top">20dp</dimen>
+    <dimen name="section_header_bottom">8dp</dimen>
+</resources>
