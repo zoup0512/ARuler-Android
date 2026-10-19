@@ -49,6 +49,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.13.0")
     implementation("com.google.ar:core:1.57.0")
+    implementation("com.huawei.hms:arenginesdk:4.0.0.5")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")

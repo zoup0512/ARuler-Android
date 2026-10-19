@@ -3,12 +3,10 @@ package com.aruler.android.ar
 import android.content.Context
 import android.opengl.GLES11Ext
 import android.opengl.GLES30
-import com.google.ar.core.Coordinates2d
-import com.google.ar.core.Frame
 import java.nio.FloatBuffer
 
 /**
- * Draws the ARCore camera image as an opaque full-screen quad.
+ * Draws the tracking backend's camera image as an opaque full-screen quad.
  */
 class BackgroundRenderer {
 
@@ -16,15 +14,6 @@ class BackgroundRenderer {
         private set
 
     private var program: ShaderProgram? = null
-
-    private val quadCoords: FloatBuffer = GlUtil.createFloatBuffer(
-        floatArrayOf(
-            -1f, -1f,
-            1f, -1f,
-            -1f, 1f,
-            1f, 1f,
-        ),
-    )
 
     private val quadTexCoords: FloatBuffer = GlUtil.createFloatBuffer(8)
 
@@ -68,18 +57,12 @@ class BackgroundRenderer {
         program = ShaderProgram(context, "background.vert", "background.frag")
     }
 
-    fun draw(frame: Frame) {
+    fun draw(frame: TrackingFrame) {
         val shader = program ?: return
         if (textureId < 0) return
 
-        quadCoords.position(0)
         quadTexCoords.position(0)
-        frame.transformCoordinates2d(
-            Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,
-            quadCoords,
-            Coordinates2d.TEXTURE_NORMALIZED,
-            quadTexCoords,
-        )
+        frame.updateBackgroundTextureCoords(quadTexCoords)
 
         GLES30.glDisable(GLES30.GL_DEPTH_TEST)
         GLES30.glDepthMask(false)

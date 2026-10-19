@@ -1,16 +1,16 @@
 # ARuler for Android
 
-基于 iOS 开源项目 [ARuler](https://github.com/duzexu/ARuler) 复刻的 Android 版本。使用 **ARCore** 做空间追踪，用 **OpenGL ES 3.0** 自绘相机画面、测量线、特征点和调试平面，界面与交互尽量对照原 iOS 版本实现。
+基于 iOS 开源项目 [ARuler](https://github.com/duzexu/ARuler) 复刻的 Android 版本。使用 **ARCore** 或 **华为 AR Engine** 做空间追踪（启动时自动选择），用 **OpenGL ES 3.0** 自绘相机画面、测量线、特征点和调试平面，界面与交互尽量对照原 iOS 版本实现。
 
-原项目通过 ARKit 的平面命中与特征点云实现 AR 测距；本移植版保留了同样的测量思路，并在 ARCore 上重新实现了特征点锥形筛选、3σ 离群点过滤、最小二乘平面拟合和末端点平滑。
+原项目通过 ARKit 的平面命中与特征点云实现 AR 测距；本移植版保留了同样的测量思路，并在 ARCore / AR Engine 上重新实现了特征点锥形筛选、3σ 离群点过滤、最小二乘平面拟合和末端点平滑。
 
-> 运行需要支持 ARCore 的 Android 设备（Android 7.0 / API 24 及以上）。模拟器通常无法进行真实 AR 测量，建议在真机上验证。
+> 运行需要支持 ARCore 的 Android 设备（Android 7.0 / API 24 及以上），或支持华为 AR Engine 的华为/荣耀设备。模拟器通常无法进行真实 AR 测量，建议在真机上验证。
 
 ## 功能对照
 
 | 功能 | 状态 |
 | --- | --- |
-| AR 相机实时预览 | ✅ ARCore 相机 + OpenGL 自定义渲染 |
+| AR 相机实时预览 | ✅ ARCore / 华为 AR Engine 相机 + OpenGL 自定义渲染 |
 | 十字指示器，可测量时变绿、不可用时变红 | ✅ |
 | 点击按钮设置起点 / 终点，实时显示长度 | ✅ |
 | 同时保留多条已完成测量 | ✅ |
@@ -23,7 +23,7 @@
 | 新手教程 / 图标说明页 | ✅ |
 | 常见问题页 | ✅ |
 | 关于 / 支持 / 打赏 / 开源协议页 | ✅ |
-| 相机权限、ARCore 安装与不支持设备提示 | ✅ |
+| 相机权限、ARCore / AR Engine 安装与不支持设备提示 | ✅ |
 | 追踪状态 HUD 提示 | ✅ |
 | 分享、应用商店评价、GitHub 链接 | ✅ |
 
@@ -34,7 +34,8 @@
 - JDK 17
 - Android SDK Platform 36、Build Tools 35+
 - Gradle 8.14.3（仓库已包含 Gradle Wrapper）
-- 一台支持 ARCore 的 Android 真机
+- 一台支持 ARCore 或华为 AR Engine 的 Android 真机（模拟器无法进行真实测量）
+- 华为 AR Engine SDK 从 `https://developer.huawei.com/repo/` 拉取，已在 `settings.gradle.kts` 中配置
 
 如果命令行构建提示找不到 Android SDK，请在项目根目录的 `local.properties` 中写入：
 
@@ -60,13 +61,13 @@ app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-> 部分设备需要在应用商店更新或安装“Google Play Services for AR (ARCore)”。应用启动时会自动检测并引导安装。
+> 应用启动时会自动选择跟踪后端：普通设备使用“Google Play Services for AR (ARCore)”；没有 GMS 的华为/荣耀设备使用系统自带的华为 AR Engine。运行时缺失或过旧时，会在对应应用商店中引导安装/更新。
 
 ## 测量流程
 
 每帧从屏幕中心发出相机射线，按以下优先级寻找世界坐标点：
 
-1. **命中已有水平平面**：使用 `Frame.hitTest`，只接受处于追踪状态的水平平面。
+1. **命中已有水平平面**：调用后端的 `hitTest`（ARCore `Frame.hitTest` / AR Engine `ARFrame.hitTest`），只接受处于追踪状态的水平平面。
 2. **特征点平面拟合**：取以射线为轴、半角 2.5°、距离 0.1–50 m 的锥体内的特征点；用 3σ 规则过滤离群点；对剩余点做最小二乘平面拟合；将射线与该平面求交。交点距离超过 5 m 时退回特征点均值。
 3. **水平面兜底**：仅在射线向下时，与高度为 0（AR 会话初始高度）的水平面求交。
 4. 无有效结果时指示器变红，禁止开始新的测量。
@@ -76,11 +77,14 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 对应的关键代码：
 
 ```text
-app/src/main/java/com/aruler/android/ar/HitTester.kt          命中优先级
-app/src/main/java/com/aruler/android/ar/MeasurementMath.kt    3σ 过滤、Jacobi 特征分解、平面拟合、射线求交
+app/src/main/java/com/aruler/android/ar/TrackingBackend.kt       后端抽象与启动时选择
+app/src/main/java/com/aruler/android/ar/ArCoreBackend.kt         ARCore 实现
+app/src/main/java/com/aruler/android/ar/ArEngineBackend.kt       华为 AR Engine 实现
+app/src/main/java/com/aruler/android/ar/HitTester.kt             命中优先级
+app/src/main/java/com/aruler/android/ar/MeasurementMath.kt       3σ 过滤、Jacobi 特征分解、平面拟合、射线求交
 app/src/main/java/com/aruler/android/ar/MeasurementController.kt 测量状态、平滑
-app/src/main/java/com/aruler/android/ar/ArRenderer.kt         AR 帧循环与 OpenGL 绘制
-app/src/main/assets/shaders/                                   相机背景、点精灵、粗线着色器
+app/src/main/java/com/aruler/android/ar/ArRenderer.kt            AR 帧循环与 OpenGL 绘制
+app/src/main/assets/shaders/                                     相机背景、点精灵、粗线着色器
 ```
 
 ## 与 iOS 原项目的对应关系
@@ -108,7 +112,7 @@ app/src/main/assets/shaders/                                   相机背景、�
 
 ## 平台适配说明
 
-- **AR 渲染**：iOS 使用 SceneKit；Android 使用 ARCore + 自定义 GLES 3.0 渲染器，不依赖 Sceneform。
+- **AR 渲染**：iOS 使用 SceneKit；Android 使用 ARCore 或华为 AR Engine + 自定义 GLES 3.0 渲染器，不依赖 Sceneform。华为/荣耀设备启动时自动切换到 AR Engine，共用同一套渲染与测量代码。
 - **平面检测**：与原版保持一致，只开启水平平面检测。垂直表面上的测量通过特征点拟合实现。
 - **文字标注**：iOS 的 3D `SCNText` 改为跟随屏幕投影的 2D 标签（`MeasurementLabelView`），显示更清晰。
 - **新手引导**：原版首次启动时 AR 会话尚未运行；本版在相机启动后显示教练层，背景为实时画面。
@@ -130,7 +134,7 @@ app/src/main/assets/shaders/                                   相机背景、�
 - 1 个 Robolectric 原生渲染测试会把主要页面导出为 PNG（`app/build/reports/preview/`），用于检查布局与配色；这些预览不包含真实相机画面。
 - Lint 无错误。
 
-ARCore 相机、平面识别和测量交互需要在真机上验证；当前环境没有连接 ARCore 设备，未进行实机验收。
+已在荣耀 30S（Android 10，华为 AR Engine 3.11）上验证应用启动、后端选择、相机预览和渲染循环；平面识别与测量交互仍需要在真实场景中移动设备验证。ARCore 后端需要在 ARCore 认证真机上验证。
 
 ## 目录结构
 
@@ -152,6 +156,7 @@ app/src/main/
 
 - 原 iOS 项目：[duzexu/ARuler](https://github.com/duzexu/ARuler)，作者 Zexu。本项目复用了其图标、Logo、二维码等资源，并参考其测量算法与页面结构。
 - [Google ARCore SDK](https://github.com/google-ar/arcore-android-sdk)（Apache 2.0）
+- [Huawei AR Engine SDK](https://developer.huawei.com/consumer/cn/hms/huawei-arengine/)（Apache 2.0）
 - AndroidX / Material Components（Apache 2.0）
 - OpenGL ES（Khronos Group）
 

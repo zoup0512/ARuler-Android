@@ -3,10 +3,9 @@ package com.aruler.android.ar
 import android.content.Context
 import android.hardware.display.DisplayManager
 import android.view.Display
-import com.google.ar.core.Session
 
 /**
- * Keeps the ARCore display geometry in sync with the GL surface and display rotation.
+ * Keeps the tracking backend's display geometry in sync with the GL surface and display rotation.
  */
 class DisplayRotationHelper(context: Context) : DisplayManager.DisplayListener {
 
@@ -33,7 +32,7 @@ class DisplayRotationHelper(context: Context) : DisplayManager.DisplayListener {
         lastKnownRotation = -1
     }
 
-    fun updateSessionIfNeeded(session: Session) {
+    fun updateSessionIfNeeded(session: TrackingSession) {
         if (viewportWidth == 0 || viewportHeight == 0) return
         val rotation = display.rotation
         if (rotation != lastKnownRotation) {

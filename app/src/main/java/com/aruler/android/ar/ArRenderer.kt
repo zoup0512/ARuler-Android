@@ -9,12 +9,6 @@ import android.util.Log
 import com.aruler.android.LengthUnit
 import com.aruler.android.R
 import com.aruler.android.ui.ScreenLabel
-import com.google.ar.core.Camera
-import com.google.ar.core.Frame
-import com.google.ar.core.Plane
-import com.google.ar.core.Session
-import com.google.ar.core.TrackingFailureReason
-import com.google.ar.core.TrackingState
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.min
@@ -50,7 +44,7 @@ class ArRenderer(
     var debugVisuals: Boolean = false
 
     private val sessionLock = Any()
-    private var session: Session? = null
+    private var session: TrackingSession? = null
 
     private val backgroundRenderer = BackgroundRenderer()
     private val shapeRenderer = ShapeRenderer()
@@ -88,9 +82,12 @@ class ArRenderer(
 
     fun currentTrackingMessage(): String? = currentTrackingMessage
 
-    fun setSession(newSession: Session?) {
+    fun setSession(newSession: TrackingSession?) {
         synchronized(sessionLock) {
             session = newSession
+            lastTrackingMessage = null
+            lastTrackingFlash = false
+            currentTrackingMessage = null
         }
     }
 
@@ -130,14 +127,14 @@ class ArRenderer(
             } catch (error: Exception) {
                 val now = System.nanoTime()
                 if (now - lastSessionErrorNanos > 3_000_000_000L) {
-                    Log.w(TAG, "ARCore session update failed", error)
+                    Log.w(TAG, "AR session update failed", error)
                     lastSessionErrorNanos = now
                 }
                 return
-            }
+            } ?: return
 
             try {
-                render(activeSession, frame)
+                render(frame)
             } catch (error: Exception) {
                 val now = System.nanoTime()
                 if (now - lastRenderErrorNanos > 3_000_000_000L) {
@@ -148,15 +145,14 @@ class ArRenderer(
         }
     }
 
-    private fun render(session: Session, frame: Frame) {
-        val camera = frame.camera
-        camera.getProjectionMatrix(projection, 0, 0.1f, 100f)
-        camera.getViewMatrix(view, 0)
+    private fun render(frame: TrackingFrame) {
+        frame.getProjectionMatrix(projection, 0.1f, 100f)
+        frame.getViewMatrix(view)
         MeasurementMath.multiply(projection, view, viewProjection)
         shapeRenderer.setViewProjection(viewProjection)
 
         updatePointCloud(frame)
-        notifyTrackingState(camera)
+        notifyTrackingState(frame)
 
         val hit = try {
             hitTester.hitTest(
@@ -171,12 +167,7 @@ class ArRenderer(
         }
         controller.update(hit?.position)
 
-        val cameraTranslation = camera.pose.translation
-        val cameraPosition = Vec3(
-            cameraTranslation[0],
-            cameraTranslation[1],
-            cameraTranslation[2],
-        )
+        val cameraPosition = frame.cameraTranslation
         val snapshot = controller.snapshot()
         val closeToCamera = hit != null && hit.position.distanceTo(cameraPosition) < 0.05f
         val indicatorGreen = hit != null && (snapshot.hasActive || !closeToCamera)
@@ -198,7 +189,7 @@ class ArRenderer(
         }
 
         if (debugVisuals) {
-            drawDebugVisuals(session, hit?.position)
+            drawDebugVisuals(frame, hit?.position)
         }
 
         val labels = ArrayList<ScreenLabel>(snapshot.completed.size + 2)
@@ -256,47 +247,18 @@ class ArRenderer(
         return z < -0.01f
     }
 
-    private fun updatePointCloud(frame: Frame) {
-        pointCount = 0
-        var pointCloud: com.google.ar.core.PointCloud? = null
-        try {
-            pointCloud = frame.acquirePointCloud()
-            val buffer = pointCloud.points
-            val start = buffer.position()
-            val total = buffer.remaining() / 4
-            var outIndex = 0
-            for (index in 0 until total) {
-                val base = start + index * 4
-                if (buffer.get(base + 3) <= 0f) continue
-                if (pointCount >= MAX_POINTS) break
-                pointCloudPoints[outIndex++] = buffer.get(base)
-                pointCloudPoints[outIndex++] = buffer.get(base + 1)
-                pointCloudPoints[outIndex++] = buffer.get(base + 2)
-                pointCount++
-            }
-        } catch (_: Exception) {
-            pointCount = 0
-        } finally {
-            pointCloud?.release()
-        }
+    private fun updatePointCloud(frame: TrackingFrame) {
+        pointCount = frame.copyFeaturePoints(pointCloudPoints, MAX_POINTS)
     }
 
-    private fun drawDebugVisuals(session: Session, focusPoint: Vec3?) {
+    private fun drawDebugVisuals(frame: TrackingFrame, focusPoint: Vec3?) {
         val planeLines = VertexList()
-        val quaternion = FloatArray(4)
-        val translation = FloatArray(3)
 
-        for (plane in session.getAllTrackables(Plane::class.java)) {
-            if (plane.trackingState != TrackingState.TRACKING) continue
-            if (plane.subsumedBy != null) continue
-
+        for (plane in frame.trackedPlanes()) {
+            val quaternion = plane.rotationQuaternion
+            val center = plane.translation
             val extentX = plane.extentX
             val extentZ = plane.extentZ
-            if (extentX <= 0f || extentZ <= 0f) continue
-
-            plane.centerPose.getRotationQuaternion(quaternion, 0)
-            plane.centerPose.getTranslation(translation, 0)
-            val center = Vec3(translation[0], translation[1], translation[2])
 
             fun worldPoint(x: Float, z: Float): Vec3 {
                 val rotated = MeasurementMath.rotate(quaternion, Vec3(x, 0f, z))
@@ -362,8 +324,8 @@ class ArRenderer(
         }
     }
 
-    private fun notifyTrackingState(camera: Camera) {
-        if (camera.trackingState == TrackingState.TRACKING) {
+    private fun notifyTrackingState(frame: TrackingFrame) {
+        if (frame.trackingState == TrackingState.TRACKING) {
             currentTrackingMessage = null
             if (lastTrackingMessage != null) {
                 lastTrackingMessage = null
@@ -373,16 +335,17 @@ class ArRenderer(
             return
         }
 
-        val (messageRes, flash) = when (camera.trackingFailureReason) {
-            TrackingFailureReason.NONE -> R.string.tracking_initializing to false
-            TrackingFailureReason.BAD_STATE -> R.string.tracking_bad_state to false
-            TrackingFailureReason.INSUFFICIENT_LIGHT -> R.string.tracking_insufficient_light to false
-            TrackingFailureReason.EXCESSIVE_MOTION -> R.string.tracking_excessive_motion to true
-            TrackingFailureReason.INSUFFICIENT_FEATURES ->
+        val (messageRes, flash) = when (frame.trackingIssue) {
+            TrackingIssue.NONE, TrackingIssue.INITIALIZING ->
+                R.string.tracking_initializing to false
+
+            TrackingIssue.BAD_STATE -> R.string.tracking_bad_state to false
+            TrackingIssue.INSUFFICIENT_LIGHT -> R.string.tracking_insufficient_light to false
+            TrackingIssue.EXCESSIVE_MOTION -> R.string.tracking_excessive_motion to true
+            TrackingIssue.INSUFFICIENT_FEATURES ->
                 R.string.tracking_insufficient_features to false
 
-            TrackingFailureReason.CAMERA_UNAVAILABLE ->
-                R.string.tracking_camera_unavailable to false
+            TrackingIssue.CAMERA_UNAVAILABLE -> R.string.tracking_camera_unavailable to false
         }
 
         val message = context.getString(messageRes)

@@ -20,6 +20,7 @@ class LicenseActivity : BaseActivity() {
         val entries = listOf(
             LicenseEntry(R.string.license_aruler_ios, Links.GITHUB_REPO),
             LicenseEntry(R.string.license_arcore, Links.ARCORE_SDK),
+            LicenseEntry(R.string.license_arengine, Links.ARENGINE),
             LicenseEntry(R.string.license_androidx, Links.ANDROIDX),
             LicenseEntry(R.string.license_material, Links.MATERIAL_COMPONENTS),
             LicenseEntry(R.string.license_opengl, Links.OPENGL_ES),

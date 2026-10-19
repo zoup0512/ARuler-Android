@@ -5,6 +5,8 @@ object Links {
     const val GITHUB_ISSUES = "$GITHUB_REPO/issues"
 
     const val ARCORE_SDK = "https://github.com/google-ar/arcore-android-sdk"
+    const val ARENGINE =
+        "https://developer.huawei.com/consumer/cn/hms/huawei-arengine/"
     const val ANDROIDX = "https://github.com/androidx/androidx"
     const val MATERIAL_COMPONENTS =
         "https://github.com/material-components/material-components-android"

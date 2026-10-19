@@ -1,9 +1,5 @@
 package com.aruler.android.ar
 
-import com.google.ar.core.Camera
-import com.google.ar.core.Frame
-import com.google.ar.core.Plane
-import com.google.ar.core.TrackingState
 import kotlin.math.abs
 
 /**
@@ -20,7 +16,7 @@ class HitTester {
     data class WorldHit(val position: Vec3, val fromPlane: Boolean)
 
     fun hitTest(
-        frame: Frame,
+        frame: TrackingFrame,
         viewportWidth: Int,
         viewportHeight: Int,
         pointCloud: FloatArray,
@@ -32,27 +28,12 @@ class HitTester {
         val centerX = viewportWidth / 2f
         val centerY = viewportHeight / 2f
 
-        for (hit in frame.hitTest(centerX, centerY)) {
-            val trackable = hit.trackable
-            if (trackable !is Plane) continue
-            if (trackable.trackingState != TrackingState.TRACKING) continue
-
-            val type = trackable.type
-            if (type != Plane.Type.HORIZONTAL_UPWARD_FACING &&
-                type != Plane.Type.HORIZONTAL_DOWNWARD_FACING
-            ) {
-                continue
-            }
-
-            val translation = hit.hitPose.translation
-            return WorldHit(
-                Vec3(translation[0], translation[1], translation[2]),
-                fromPlane = true,
-            )
+        frame.hitTestHorizontalPlane(centerX, centerY)?.let { position ->
+            return WorldHit(position, fromPlane = true)
         }
 
         val ray = screenRay(
-            frame.camera,
+            frame,
             centerX,
             centerY,
             viewportWidth,
@@ -97,14 +78,14 @@ class HitTester {
     }
 
     private fun screenRay(
-        camera: Camera,
+        frame: TrackingFrame,
         screenX: Float,
         screenY: Float,
         viewportWidth: Int,
         viewportHeight: Int,
     ): ScreenRay? {
         val projection = FloatArray(16)
-        camera.getProjectionMatrix(projection, 0, 0.1f, 100f)
+        frame.getProjectionMatrix(projection, 0.1f, 100f)
         if (abs(projection[0]) < 1e-6f || abs(projection[5]) < 1e-6f) return null
 
         val ndcX = 2f * screenX / viewportWidth - 1f
@@ -115,12 +96,11 @@ class HitTester {
             -1f,
         )
 
-        val quaternion = FloatArray(4)
-        camera.pose.getRotationQuaternion(quaternion, 0)
-        val direction = MeasurementMath.rotate(quaternion, directionCamera).normalized()
+        val direction = MeasurementMath.rotate(
+            frame.cameraRotationQuaternion,
+            directionCamera,
+        ).normalized()
 
-        val translation = camera.pose.translation
-        val origin = Vec3(translation[0], translation[1], translation[2])
-        return ScreenRay(origin, direction)
+        return ScreenRay(frame.cameraTranslation, direction)
     }
 }

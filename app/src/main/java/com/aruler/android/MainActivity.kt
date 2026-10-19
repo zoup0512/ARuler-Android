@@ -10,6 +10,7 @@ import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
@@ -25,18 +26,18 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import com.aruler.android.ar.ArRenderer
+import com.aruler.android.ar.BackendPrepareResult
 import com.aruler.android.ar.DisplayRotationHelper
 import com.aruler.android.ar.FrameUiState
 import com.aruler.android.ar.MeasurementController
+import com.aruler.android.ar.TrackingBackend
+import com.aruler.android.ar.TrackingBackends
+import com.aruler.android.ar.TrackingSession
 import com.aruler.android.ui.CoachMarkOverlayView
 import com.aruler.android.ui.HudView
 import com.aruler.android.ui.MeasurementLabelView
 import com.aruler.android.ui.dpInt
 import com.google.android.material.button.MaterialButton
-import com.google.ar.core.ArCoreApk
-import com.google.ar.core.Config
-import com.google.ar.core.Session
-import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
 
 class MainActivity : AppCompatActivity(), ArRenderer.UiListener {
 
@@ -61,7 +62,8 @@ class MainActivity : AppCompatActivity(), ArRenderer.UiListener {
     private lateinit var grantCameraButton: MaterialButton
     private lateinit var openSettingsButton: MaterialButton
 
-    private var session: Session? = null
+    private var backend: TrackingBackend? = null
+    private var session: TrackingSession? = null
     private var sessionResumed = false
     private var surfaceResumed = false
     private var displayListenerRegistered = false
@@ -323,15 +325,33 @@ class MainActivity : AppCompatActivity(), ArRenderer.UiListener {
             return
         }
         if (session == null) {
-            if (!ensureArCoreInstalled()) return
-            var newSession: Session? = null
+            val activeBackend = backend ?: TrackingBackends.select(this).also { backend = it }
+            when (activeBackend.prepare(this, !installRequested)) {
+                BackendPrepareResult.READY -> Unit
+                BackendPrepareResult.INSTALL_REQUESTED -> {
+                    installRequested = true
+                    return
+                }
+
+                BackendPrepareResult.DECLINED -> {
+                    showFatal(getString(R.string.ar_install_failed))
+                    return
+                }
+
+                BackendPrepareResult.UNSUPPORTED -> {
+                    showFatal(getString(R.string.ar_unsupported_message))
+                    return
+                }
+            }
+
+            var newSession: TrackingSession? = null
             try {
-                newSession = Session(this)
-                newSession.configure(createConfig(newSession))
+                newSession = activeBackend.createSession(this)
                 session = newSession
                 renderer.setSession(newSession)
                 displayRotationHelper.forceUpdate()
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                Log.e(TAG, "Failed to create ${activeBackend.name} session", error)
                 runCatching { newSession?.close() }
                 session = null
                 renderer.setSession(null)
@@ -377,16 +397,17 @@ class MainActivity : AppCompatActivity(), ArRenderer.UiListener {
             }
             runCatching { previousSession?.close() }
 
-            var newSession: Session? = null
+            var newSession: TrackingSession? = null
             try {
-                newSession = Session(this)
-                newSession.configure(createConfig(newSession))
+                val activeBackend = backend ?: TrackingBackends.select(this).also { backend = it }
+                newSession = activeBackend.createSession(this)
                 session = newSession
                 renderer.setSession(newSession)
                 displayRotationHelper.forceUpdate()
                 newSession.resume()
                 sessionResumed = true
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                Log.e(TAG, "Failed to restart AR session", error)
                 runCatching { newSession?.close() }
                 session = null
                 renderer.setSession(null)
@@ -396,34 +417,6 @@ class MainActivity : AppCompatActivity(), ArRenderer.UiListener {
         }
 
         failureMessage?.let { showFatal(it) }
-    }
-
-    private fun createConfig(session: Session): Config {
-        return Config(session).apply {
-            planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
-            updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
-            focusMode = Config.FocusMode.AUTO
-            lightEstimationMode = Config.LightEstimationMode.DISABLED
-        }
-    }
-
-    private fun ensureArCoreInstalled(): Boolean {
-        return try {
-            when (ArCoreApk.getInstance().requestInstall(this, !installRequested)) {
-                ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
-                    installRequested = true
-                    false
-                }
-
-                ArCoreApk.InstallStatus.INSTALLED -> true
-            }
-        } catch (_: UnavailableUserDeclinedInstallationException) {
-            showFatal(getString(R.string.ar_install_failed))
-            false
-        } catch (_: Exception) {
-            showFatal(getString(R.string.ar_unsupported_message))
-            false
-        }
     }
 
     private fun maybeShowCoachMarks() {
@@ -536,5 +529,9 @@ class MainActivity : AppCompatActivity(), ArRenderer.UiListener {
                     .start()
             }
             .start()
+    }
+
+    private companion object {
+        const val TAG = "MainActivity"
     }
 }
